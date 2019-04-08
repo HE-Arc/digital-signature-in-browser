@@ -5,6 +5,13 @@
 document.addEventListener("DOMContentLoaded", function() {
     "use strict"; // Paul: à quoi sert le use strict
 
+    var opgp; // use as CommonJS, AMD, ES6 module or via window.openpgp
+    require(['openpgp'], function (opgp) {
+        //foo is now loaded.
+        openpgp = opgp;
+        openpgp.initWorker({ path:'openpgp.worker.js' }) // set the relative web worker path
+    });
+
     // Fix Apple prefix if needed // Paul: comprends pas tout ce qui ce passe ici
     if (window.crypto && !window.crypto.subtle && window.crypto.webkitSubtle) {
         window.crypto.subtle = window.crypto.webkitSubtle;  // Won't work if subtle already exists
@@ -37,17 +44,20 @@ document.addEventListener("DOMContentLoaded", function() {
         // Side effect: updates keyPair in enclosing scope with new value.
 
 		// Paul: 2 possibilité, insérer la section Generate new key pair de la doc officiel 
-		//ou générer clé depuis site(https://pgpkeygen.com/) et les charger ici
-        return window.crypto.subtle.generateKey(
-            {
-                name: "RSASSA-PKCS1-v1_5",
-                modulusLength: 2048,
-                publicExponent: new Uint8Array([1, 0, 1]),  // 24 bit representation of 65537
-                hash: {name: "SHA-256"}
-            },
-            true,   // can extract it later if we want
-            ["sign", "verify"]).
-        then(function (key) {
+        //ou générer clé depuis site(https://pgpkeygen.com/) et les charger ici
+        
+        // RSA
+        var options = {
+            userIds: [{ name:'Jon Smith', email:'jon@example.com' }], // multiple user IDs
+            numBits: 4096,                                            // RSA key size
+            passphrase: 'super long and hard to guess secret'         // protects the private key
+        };
+
+        return openpgp.generateKey(options).then(function(key) {
+            var privkey = key.privateKeyArmored; // '-----BEGIN PGP PRIVATE KEY BLOCK ... '
+            var pubkey = key.publicKeyArmored;   // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+            var revocationCertificate = key.revocationCertificate; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+
             keyPair = key;
             return key;
         });
@@ -78,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var plaintext = reader.result;
 
 			// Paul: ici sign vas générer un blob qui sera utilisé dans la ligne après elle
-            sign(plaintext, keyPair.privateKey).
+            sign(plaintext, keyPair.privateKeyArmored).
             then(function(blob) { // Paul: pourrait garder la structure tel ou changer le type d'objet manipulé si blob pas maitrisé
                 var url = URL.createObjectURL(blob);
                 document.getElementById("download-links").insertAdjacentHTML(
@@ -101,12 +111,12 @@ document.addEventListener("DOMContentLoaded", function() {
 				
 				// Paul: remplacer cf section "Sign and verify cleartext messages" de doc
 
-                return window.crypto.subtle.sign(
-                    {name: "RSASSA-PKCS1-v1_5"},
-                    privateKey,
-                    plaintext).
-                then(packageResults);
-
+                options = {
+                    message: openpgp.cleartext.fromText(plaintext),         // CleartextMessage or Message object
+                    privateKeys: [privateKey]                               // for signing
+                };
+                
+                return openpgp.sign(options).then(packageResults(signature));
 
                 function packageResults(signature) { // Paul: doit surement changer ça surtout avec changement du type blob
                     // Returns a Blob representing the package of
@@ -158,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var signature       = new Uint8Array( data, 2, signatureLength);
             var plaintext       = new Uint8Array( data, 2 + signatureLength);
 
-            verify(plaintext, signature, keyPair.publicKey).
+            verify(plaintext, signature, keyPair.publicKeyArmored).
             then(function(blob) { // Paul: peut virer, cf code de la doc (y'a une ligne if(validity){...})
                 if (blob === null) {
                     alert("Invalid signature!");
@@ -181,20 +191,21 @@ document.addEventListener("DOMContentLoaded", function() {
                 // either a Blob containing the original plaintext
                 // or null if the signature was invalid.
 
-				// Paul: ouais tout changer et se référencer de nouveaux à la section Sign and verify cleartext messages
-                return window.crypto.subtle.verify(
-                    {name: "RSASSA-PKCS1-v1_5"},
-                    publicKey,
-                    signature,
-                    plaintext
-                ).
-                then(handleVerification);
+                // Paul: ouais tout changer et se référencer de nouveaux à la section Sign and verify cleartext messages
+                
+                options = {
+                    message: openpgp.cleartext.readArmored(cleartext),            // parse armored message
+                    publicKeys: openpgp.key.readArmored(publicKey).keys,        // for verification
+                };
+                
+                return openpgp.verify(options).then(handleVerification(verified));
 
-
-                function handleVerification(successful) {
+                function handleVerification(verified) {
                     // Returns either a Blob containing the original plaintext
                     // (if verification was successful) or null (if not).
-                    if (successful) {
+                    if (verified.signatures[0].valid) {
+                        console.log(verified.signatures);
+                        console.log(signature);
                         return new Blob([plaintext], {type: "application/octet-stream"});
                     } else {
                         return null;
