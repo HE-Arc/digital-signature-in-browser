@@ -22,10 +22,10 @@ document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('uncrypted').innerHTML = "<span style=\"color:blue;\">" + uncrypted+"</span>";
 
       if (uncrypted == input) {
-        document.getElementById('result').innerHTML = "<span class=\"badge badge-success\">Success</span>";
+        document.getElementById('result').innerHTML = "<h3><span class=\"badge badge-success\">Success</span></h3>";
       }
       else {
-        document.getElementById('result').innerHTML = "<span class=\"badge badge-danger\"Fail !</span>";
+        document.getElementById('result').innerHTML = "<h3><span class=\"badge badge-danger\"Fail !</span></h3>";
       }
   }
 });
