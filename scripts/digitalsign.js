@@ -6,11 +6,10 @@ document.addEventListener("DOMContentLoaded", function() {
     "use strict"; // Paul: à quoi sert le use strict
 
     var openpgp = window.openpgp;
-    openpgp.initWorker({ path:'openpgp.worker.js' });
 
     var keyPair;    // Used by several handlers later
 
-    createAndSaveAKeyPair().
+    keyPair = createAndSaveAKeyPair().
     then(function() { // Paul: à garder tel quel, changer contenu de fonction bien évidemment
         // Only enable the cryptographic operation buttons if a key pair can be created
         document.getElementById("sign").addEventListener("click", signTheFile);
@@ -20,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
         alert("Could not create a keyPair or enable buttons: " + err.message + "\n" + err.stack);
     });
 
+    console.log(keyPair);
 
 
     // Key pair creation:
@@ -32,10 +32,10 @@ document.addEventListener("DOMContentLoaded", function() {
 		// Paul: 2 possibilité, insérer la section Generate new key pair de la doc officiel
         //ou générer clé depuis site(https://pgpkeygen.com/) et les charger ici
 
-        // RSA
+        // Data used to generate keys
         var options = {
             userIds: [{ name:'Jon Smith', email:'jon@example.com' }], // multiple user IDs
-            numBits: 4096,                                            // RSA key size
+            numBits: 4096,                                            // key size
             passphrase: 'super long and hard to guess secret'         // protects the private key
         };
 
@@ -43,6 +43,10 @@ document.addEventListener("DOMContentLoaded", function() {
             var privkey = key.privateKeyArmored; // '-----BEGIN PGP PRIVATE KEY BLOCK ... '
             var pubkey = key.publicKeyArmored;   // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
             var revocationCertificate = key.revocationCertificate; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+
+            console.log(privkey);
+            console.log(pubkey);
+            console.log(revocationCertificate);
 
             keyPair = key;
             return key;
@@ -63,18 +67,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
         var reader = new FileReader();
         reader.onload = processTheFile;
-        reader.readAsArrayBuffer(sourceFile);
+        reader.readAsBinaryString(sourceFile);
 
         // Asynchronous handler:
-        function processTheFile() {
+        async function processTheFile() {
             // Load handler for file reader. Needs to reference keyPair from
             // enclosing scope.
 
             var reader = this;              // Was invoked by the reader object
             var plaintext = reader.result;
 
+            console.log(plaintext);
+            console.log(keyPair);
+            var privateKey = (await openpgp.key.readArmored(keyPair.privateKeyArmored)).keys[0];
+            await privateKey.decrypt("super long and hard to guess secret");
+
 			// Paul: ici sign vas générer un blob qui sera utilisé dans la ligne après elle
-            sign(plaintext, keyPair.privateKeyArmored).
+            sign(plaintext, privateKey).
             then(function(blob) { // Paul: pourrait garder la structure tel ou changer le type d'objet manipulé si blob pas maitrisé
                 var url = URL.createObjectURL(blob);
                 document.getElementById("download-links").insertAdjacentHTML(
@@ -86,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
 
-            function sign(plaintext, privateKey) {
+            async function sign(plaintext, privateKey) {
                 // Returns a Promise that yields a Blob to its
                 // then handler. The Blob points to an signed
                 // representation of the file. The structure of the
@@ -97,28 +106,31 @@ document.addEventListener("DOMContentLoaded", function() {
 
 				// Paul: remplacer cf section "Sign and verify cleartext messages" de doc
 
-                options = {
+                var options = {
                     message: openpgp.cleartext.fromText(plaintext),         // CleartextMessage or Message object
                     privateKeys: [privateKey]                               // for signing
                 };
+                console.log("[sign] : " + privateKey);
 
-                return openpgp.sign(options).then(packageResults(signature));
+                return openpgp.sign(options).then(
+                    function packageResults(signature) { // Paul: doit surement changer ça surtout avec changement du type blob
+                        // Returns a Blob representing the package of
+                        // the signature it is provided and the original
+                        // plaintext (in an enclosing scope).
 
-                function packageResults(signature) { // Paul: doit surement changer ça surtout avec changement du type blob
-                    // Returns a Blob representing the package of
-                    // the signature it is provided and the original
-                    // plaintext (in an enclosing scope).
+                        console.log("[packageResults] : " + signature);
 
-                    var length = new Uint16Array([signature.byteLength]);
-                    return new Blob(
-                        [
-                            length,     // Always a 2 byte unsigned integer
-                            signature,  // "length" bytes long
-                            plaintext   // Remainder is the original plaintext
-                        ],
-                        {type: "application/octet-stream"}
-                    );
-                }
+                        var length = new Uint16Array([signature.byteLength]);
+                        return new Blob(
+                            [
+                                length,     // Always a 2 byte unsigned integer
+                                signature,  // "length" bytes long
+                                plaintext   // Remainder is the original plaintext
+                            ],
+                            {type: "application/octet-stream"}
+                        );
+                    }
+                );
 
             } // End of sign
         } // end of processTheFile
@@ -179,7 +191,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 // Paul: ouais tout changer et se référencer de nouveaux à la section Sign and verify cleartext messages
 
-                options = {
+                var options = {
                     message: openpgp.cleartext.readArmored(cleartext),            // parse armored message
                     publicKeys: openpgp.key.readArmored(publicKey).keys,        // for verification
                 };

@@ -9,10 +9,9 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta charset="UTF-8"/>
-    <script type="text/javascript" src="scripts/signverify.js"></script>
+    <!--<script type="text/javascript" src="scripts/signverify.js"></script>-->
     <script type="text/javascript" src="scripts/openpgp.js"></script>
-    <!--<script type="text/javascript" src="scripts/openpgp.worker.js"></script>-->
-    <!--<script type="text/javascript" src="scripts/digitalsign.js"></script>-->
+    <script type="text/javascript" src="scripts/digitalsign.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
     <script type="text/javascript" src="scripts/jsencrypt_ds.js"></script>
@@ -21,7 +20,7 @@
   <div class="container">
     <div class="page-header">
 			<h3>
-				<a href="http://he-arc.ch"><img src="external/resources/img/logo_hearc_ingenierie_rouge_transp.png" alt="logo_hearc_ingenierie" width="150px" /></a> 3253.1 Conception OS
+				<a href="http://he-arc.ch"><img src="external/resources/img/logo_hearc_ingenierie_rouge_transp.png" alt="logo_hearc_ingenierie" width="150px" /></a> 3xxx.x Sécurité
 			</h3>
 			<p class="lead">
 				Authors : Paul Arzul, Damian Petroff & Segan Salomon -	<span class="badge badge-danger">INF3dlm-b</span>
@@ -32,7 +31,7 @@
 			<hr>
 		</div>
     <h1>Digital Signature</h1>
-    <h3>OpenPJP.js</h3>
+    <h3>OpenPGP.js</h3>
     <section id="sign-and-verify">
         <input type="file" id="source-file"/>
         <button id="sign">Sign File</button>

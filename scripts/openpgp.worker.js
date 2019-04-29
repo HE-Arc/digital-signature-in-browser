@@ -29,9 +29,6 @@
  * @module worker/worker
  */
 
-self.window = self; // to make UMD bundles work
-
-importScripts('openpgp.js');
 var openpgp = window.openpgp;
 
 var randomQueue = [];
