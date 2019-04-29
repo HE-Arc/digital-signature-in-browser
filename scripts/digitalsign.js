@@ -102,9 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         
                         return new Blob(
                             [
-                                //length,     // Always a 2 byte unsigned integer
-                                signature.data,  // "length" bytes long
-                                //plaintext   // Remainder is the original plaintext
+                                signature.data,  // signature
                             ],
                             {type: "application/octet-stream"}
                         );
