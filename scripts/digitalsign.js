@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", function() {
     "use strict"; // Paul: à quoi sert le use strict
 
     var openpgp = window.openpgp;
-
     var keyPair;    // Used by several handlers later
 
     keyPair = createAndSaveAKeyPair().
