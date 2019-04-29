@@ -16,97 +16,65 @@ document.addEventListener("DOMContentLoaded", function() {
   }).catch(function(err) {
     alert("Could not create a keyPair or enable buttons: " + err.message + "\n" + err.stack);
   });
-//--------------------
-  function createAndSaveAKeyPair() { // Paul: Garder la fonction mais changer le contenu
+
+  function createAndSaveAKeyPair() {
     console.log("Creating and saving a key pair...");
     var options = {
-        userIds: [{ name:'Jon Smith', email:'jon@example.com' }], // multiple user IDs
-        numBits: 4096,                                            // RSA key size
-        passphrase: 'super long and hard to guess secret'         // protects the private key
+        userIds: [{ name:'Jon Smith', email:'jon@example.com' }],
+        numBits: 4096,
+        passphrase: 'super long and hard to guess secret'
     };
     return openpgp.generateKey(options).then(function(key) {
-      pr = key.privateKeyArmored; // '-----BEGIN PGP PRIVATE KEY BLOCK ... '
+      pr = key.privateKeyArmored;
       console.log("Private key :", pr);
-      pu = key.publicKeyArmored;   // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+      pu = key.publicKeyArmored;
       console.log("Public key :", pu);
-      var revocationCertificate = key.revocationCertificate; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+      var revocationCertificate = key.revocationCertificate;
       keyPair = key;
+      test();
       return key;
     });
   }
-//--------------------
-  async function signTheFile() {
-    var sourceFile = document.getElementById("source-file").files[0];
-    if(sourceFile == undefined){
-      alert("No file selected !");
-    }
-    else {
-      console.log("File signature begins...");
-    }
-    var reader = new FileReader();
-    reader.onload = processTheFile;
-    reader.readAsText(sourceFile);
-    //--------------------
-    async function processTheFile() {
-      console.log("Processing the file...");
-      //var privkey = keyPair.privateKeyArmored; // '-----BEGIN PGP PRIVATE KEY BLOCK ... '
-      //var pubkey = keyPair.publicKeyArmored;   // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
-      var passphrase = 'secret passphrase'; //what the privKey is encrypted with
-      var reader = this;              // Was invoked by the reader object
-      var plaintext = reader.result;
 
-      console.log("plaintext :", plaintext);
-      await sign_message(pu, pr, passphrase, plaintext);
-      //console.log("signed :", signed);
-    } // end of processTheFile
-  } // end of signTheFile click handler
-//--------------------
-  function verifyTheFile() {
-    var sourceFile = document.getElementById("source-file").files[0];
-    var reader = new FileReader();
-    reader.onload = processTheFile;
-    reader.readAsArrayBuffer(sourceFile);
-    //--------------------
-    function processTheFile() {
-      var reader = this;              // Invoked by the reader object
-      var data = reader.result;
-      var signatureLength = new Uint16Array(data, 0, 2)[0];   // First 16 bit integer
-      var signature       = new Uint8Array( data, 2, signatureLength);
-      var plaintext       = new Uint8Array( data, 2 + signatureLength);
-      verify(plaintext, signature, keyPair.publicKeyArmored).
-      then(function(blob) { // Paul: peut virer, cf code de la doc (y'a une ligne if(validity){...})
-        if (blob === null) {alert("Invalid signature!");}
-        else {
-          alert("Signature is valid.");
-          var url = URL.createObjectURL(blob);
-          document.getElementById("download-links").insertAdjacentHTML(
-              'beforeEnd','<li><a href="' + url + '">Verified file</a></li>');
-        }
-      }).catch(function(err) {
-        alert("Something went wrong verifying: " + err.message + "\n" + err.stack);
-      });
-      //--------------------
-      function verify(plaintext, signature, publicKey) {
-        options = {
-            message: openpgp.cleartext.readArmored(cleartext),            // parse armored message
-            publicKeys: openpgp.key.readArmored(publicKey).keys,        // for verification
-        };
-        return openpgp.verify(options).then(handleVerification(verified));
-        function handleVerification(verified) {
-          if (verified.signatures[0].valid) {
-              console.log(verified.signatures);
-              console.log(signature);
-              return new Blob([plaintext], {type: "application/octet-stream"});
-          } else {
-              return null;
-          }
-        }
-      } // end of verify
-    } // end of processTheFile
-  } // end of decryptTheFile
+  async function test()
+  {
+    var msg = "hi";
+    var cleartext, validity;
+    var pubkey = pu;
+    console.log(pubkey);
+    var privkey = pr;
+    console.log(privkey);
+    var passphrase = 'super long and hard to guess secret'; //what the privKey is encrypted with
+
+    var privKeyObj = (await openpgp.key.readArmored(privkey)).keys[0];
+    await privKeyObj.decrypt(passphrase);
+    console.log("privKey read");
+    var options_sign = {
+      message: openpgp.cleartext.fromText(msg),
+      privateKeys: [privKeyObj]
+    };
+    console.log("options sign");
+
+    await openpgp.sign(options_sign).then(function(signed) {
+        cleartext = signed.data; // '-----BEGIN PGP SIGNED MESSAGE ... END PGP SIGNATURE-----'
+    });
+
+    console.log("options verify");
+    var options_verify = {
+        message: await openpgp.cleartext.readArmored(cleartext), // parse armored message
+        publicKeys: (await openpgp.key.readArmored(pubkey)).keys // for verification
+    };
+
+    console.log("sign");
+    await openpgp.verify(options_verify).then(function(verified) {
+      validity = verified.signatures[0].valid; // true
+      if (validity) {
+          console.log('signed by key id ' + verified.signatures[0].keyid.toHex());
+      }
+    });
+    console.log("verify");
+  }
 });
-
-
 
 function stringToUint(string) {
     var string = btoa(unescape(encodeURIComponent(string))),
@@ -123,24 +91,3 @@ function uintToString(uintArray) {
         decodedString = decodeURIComponent(escape(atob(encodedString)));
     return decodedString;
 }
-
-async function sign_message(pubkey, privkey, passphrase, message){
-	var priv = await openpgp.key.readArmored(privkey);
-	var pub = await openpgp.key.readArmored(pubkey);
-  console.log("priv",priv);
-  console.log("pub",pub);
-
-  var privKeyObj = priv.keys[0];
-  passphrase = "secret";
-  await privKeyObj.decrypt(passphrase);
-  console.log("privKeyObj",privKeyObj);
-  options = {
-    message: openpgp.cleartext.fromText(message), // CleartextMessage or Message object
-    privateKeys: [privKeyObj]                             // for signing
-  };
-
-  openpgp.sign(options).then(function(signed) {
-      cleartext = signed.data; // '-----BEGIN PGP SIGNED MESSAGE ... END PGP SIGNATURE-----'
-  });
-	return signed;
-	}
