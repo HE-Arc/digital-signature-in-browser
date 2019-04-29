@@ -82,7 +82,16 @@ GNU Lesser General Public License (3.0 or any later version).
 ## Digital Bazaar
 > Leaders in the creation of open payments, identity, and blockchain solutions for the Web.
 
-Entreprise.
+### Projet "Forge"
+https://github.com/digitalbazaar/forge
+> A native implementation of TLS (and various other cryptographic tools) in JavaScript.
+> https://github.com/digitalbazaar/forge#tls
+
+
+## GnuPG
+
+https://www.gnupg.org/
+
 
 ## Sources
 - https://en.wikipedia.org/wiki/Pretty_Good_Privacy

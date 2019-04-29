@@ -5,15 +5,34 @@
 <html>
 <head>
     <title>Digital Signature</title>
+    <!-- BOOTSTRAP -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta charset="UTF-8"/>
+    <script type="text/javascript" src="scripts/signverify.js"></script>
     <script type="text/javascript" src="scripts/openpgp.js"></script>
-    <script type="text/javascript" src="scripts/openpgp.worker.js"></script>
-    <script type="text/javascript" src="scripts/digitalsign.js"></script>
+    <!--<script type="text/javascript" src="scripts/openpgp.worker.js"></script>-->
+    <!--<script type="text/javascript" src="scripts/digitalsign.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+    <script type="text/javascript" src="scripts/jsencrypt_ds.js"></script>
 </head>
-
 <body>
+  <div class="container">
+    <div class="page-header">
+			<h3>
+				<a href="http://he-arc.ch"><img src="external/resources/img/logo_hearc_ingenierie_rouge_transp.png" alt="logo_hearc_ingenierie" width="150px" /></a> 3253.1 Conception OS
+			</h3>
+			<p class="lead">
+				Authors : Paul Arzul, Damian Petroff & Segan Salomon -	<span class="badge badge-danger">INF3dlm-b</span>
+				<div>
+					Last update : 28th April 2019
+				</div>
+			</p>
+			<hr>
+		</div>
     <h1>Digital Signature</h1>
-
+    <h3>OpenPJP.js</h3>
     <section id="sign-and-verify">
         <input type="file" id="source-file"/>
         <button id="sign">Sign File</button>
@@ -25,5 +44,27 @@
         <ul id="download-links">
         </ul>
     </section>
-</body>
+
+    <hr>
+    <h3>jsEncrypt</h3><br>
+    <h5 for="privkey">Example Private Key</h5>
+    <textarea id="privkey" rows="14" cols="100"></textarea><br><br>
+      <h5 for="pubkey">Example Public Key</h5>
+      <textarea id="pubkey" rows="5" cols="100"></textarea><br><br>
+      <h5 for="input">Text to encrypt:</h5>
+      <textarea id="input" name="input" type="text" rows=4 cols=65>This is a test!</textarea><br><br>
+
+      <h5>Encrypted ciphertext</h5>
+      <span id="encrypted">---</span><br>
+
+      <h5>Uncrypted plaintext</h5>
+      <span id="uncrypted">---</span><br><br>
+
+      <span id="result">---</span><br><br>
+
+      <input class="btn btn-primary" id="jsEcryptTest" type="button" value="Test JSEncrypt"/><br>
+
+      </div>
+  </body>
+</script>
 </html>

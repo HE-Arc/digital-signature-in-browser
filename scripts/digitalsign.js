@@ -29,9 +29,9 @@ document.addEventListener("DOMContentLoaded", function() {
         // Takes no input, yields a key pair to the then handler.
         // Side effect: updates keyPair in enclosing scope with new value.
 
-		// Paul: 2 possibilité, insérer la section Generate new key pair de la doc officiel 
+		// Paul: 2 possibilité, insérer la section Generate new key pair de la doc officiel
         //ou générer clé depuis site(https://pgpkeygen.com/) et les charger ici
-        
+
         // RSA
         var options = {
             userIds: [{ name:'Jon Smith', email:'jon@example.com' }], // multiple user IDs
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         var reader = new FileReader();
         reader.onload = processTheFile;
-        reader.readAsArrayBuffer(sourceFile); 
+        reader.readAsArrayBuffer(sourceFile);
 
         // Asynchronous handler:
         function processTheFile() {
@@ -94,14 +94,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 //    16 bit integer length of the digital signature
                 //    Digital signature
                 //    Original plaintext
-				
+
 				// Paul: remplacer cf section "Sign and verify cleartext messages" de doc
 
                 options = {
                     message: openpgp.cleartext.fromText(plaintext),         // CleartextMessage or Message object
                     privateKeys: [privateKey]                               // for signing
                 };
-                
+
                 return openpgp.sign(options).then(packageResults(signature));
 
                 function packageResults(signature) { // Paul: doit surement changer ça surtout avec changement du type blob
@@ -178,12 +178,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 // or null if the signature was invalid.
 
                 // Paul: ouais tout changer et se référencer de nouveaux à la section Sign and verify cleartext messages
-                
+
                 options = {
                     message: openpgp.cleartext.readArmored(cleartext),            // parse armored message
                     publicKeys: openpgp.key.readArmored(publicKey).keys,        // for verification
                 };
-                
+
                 return openpgp.verify(options).then(handleVerification(verified));
 
                 function handleVerification(verified) {
