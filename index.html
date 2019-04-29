@@ -9,9 +9,9 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta charset="UTF-8"/>
-    <!--<script type="text/javascript" src="scripts/signverify.js"></script>-->
+    <script type="text/javascript" src="scripts/signverify.js"></script>
     <script type="text/javascript" src="scripts/openpgp.js"></script>
-    <script type="text/javascript" src="scripts/digitalsign.js"></script>
+    <!--<script type="text/javascript" src="scripts/digitalsign.js"></script>-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
     <script type="text/javascript" src="scripts/jsencrypt_ds.js"></script>
@@ -32,6 +32,11 @@
 		</div>
     <h1>Digital Signature</h1>
     <h3>OpenPGP.js</h3>
+    <h5 for="privkey_openpgp">Private Key</h5>
+    <label id="privkey_openpgp">Wanting for generation...</label><br><br>
+    <h5 for="pubkey_openpgp">Public Key</h5>
+    <label id="pubkey_openpgp">Wanting for generation...</label><br><br>
+    <input class="btn btn-primary" id="jsEcryptTest" type="button" value="Test JSEncrypt"/><br>
     <section id="sign-and-verify">
         <input type="file" id="source-file"/>
         <button id="sign">Sign File</button>
@@ -48,20 +53,20 @@
     <h3>jsEncrypt</h3><br>
     <h5 for="privkey">Example Private Key</h5>
     <textarea id="privkey" rows="14" cols="100"></textarea><br><br>
-      <h5 for="pubkey">Example Public Key</h5>
-      <textarea id="pubkey" rows="5" cols="100"></textarea><br><br>
-      <h5 for="input">Text to encrypt:</h5>
-      <textarea id="input" name="input" type="text" rows=4 cols=65>This is a test!</textarea><br><br>
+    <h5 for="pubkey">Example Public Key</h5>
+    <textarea id="pubkey" rows="5" cols="100"></textarea><br><br>
+    <h5 for="input">Text to encrypt:</h5>
+    <textarea id="input" name="input" type="text" rows=4 cols=65>This is a test!</textarea><br><br>
 
-      <h5>Encrypted ciphertext</h5>
-      <span id="encrypted">---</span><br>
+    <h5>Encrypted ciphertext</h5>
+    <span id="encrypted">---</span><br>
 
-      <h5>Uncrypted plaintext</h5>
-      <span id="uncrypted">---</span><br><br>
+    <h5>Uncrypted plaintext</h5>
+    <span id="uncrypted">---</span><br><br>
 
-      <span id="result">---</span><br><br>
+    <span id="result">---</span><br><br>
 
-      <input class="btn btn-primary" id="jsEcryptTest" type="button" value="Test JSEncrypt"/><br>
+    <input class="btn btn-primary" id="jsEcryptTest" type="button" value="Test JSEncrypt"/><br>
 
       </div>
   </body>
