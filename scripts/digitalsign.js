@@ -3,13 +3,13 @@
 // a signed file can be verified, with that key pair.
 
 document.addEventListener("DOMContentLoaded", function() {
-    "use strict"; // Paul: à quoi sert le use strict
+    "use strict";
 
     var openpgp = window.openpgp;
     var keyPair;    // Used by several handlers later
 
     keyPair = createAndSaveAKeyPair().
-    then(function() { // Paul: à garder tel quel, changer contenu de fonction bien évidemment
+    then(function() {
         // Only enable the cryptographic operation buttons if a key pair can be created
         document.getElementById("sign").addEventListener("click", signTheFile);
         document.getElementById("verify").addEventListener("click", verifyTheFile);
@@ -20,13 +20,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Key pair creation:
 
-    function createAndSaveAKeyPair() { // Paul: Garder la fonction mais changer le contenu
+    function createAndSaveAKeyPair() {
         // Returns a promise.
         // Takes no input, yields a key pair to the then handler.
         // Side effect: updates keyPair in enclosing scope with new value.
-
-		// Paul: 2 possibilité, insérer la section Generate new key pair de la doc officiel
-        //ou générer clé depuis site(https://pgpkeygen.com/) et les charger ici
 
         // Data used to generate keys
         var options = {
@@ -53,8 +50,6 @@ document.addEventListener("DOMContentLoaded", function() {
         // Click handler. Reads the selected file, then signs it to
         // the random key pair's private key. Creates a Blob with the result,
         // and places a link to that Blob in the download-results section.
-
-		// Paul: garder tel quel
         var sourceFile = document.getElementById("source-file").files[0];
 
         var reader = new FileReader();
@@ -72,9 +67,8 @@ document.addEventListener("DOMContentLoaded", function() {
             var privateKey = (await openpgp.key.readArmored(keyPair.privateKeyArmored)).keys[0];
             await privateKey.decrypt("super long and hard to guess secret");
 
-			// Paul: ici sign vas générer un blob qui sera utilisé dans la ligne après elle
             sign(plaintext, privateKey).
-            then(function(blob) { // Paul: pourrait garder la structure tel ou changer le type d'objet manipulé si blob pas maitrisé
+            then(function(blob) {
                 var url = URL.createObjectURL(blob);
                 document.getElementById("download-links").insertAdjacentHTML(
                     'beforeEnd',
@@ -94,24 +88,23 @@ document.addEventListener("DOMContentLoaded", function() {
                 //    Digital signature
                 //    Original plaintext
 
-				// Paul: remplacer cf section "Sign and verify cleartext messages" de doc
-
                 var options = {
                     message: openpgp.cleartext.fromText(plaintext),         // CleartextMessage or Message object
                     privateKeys: [privateKey]                               // for signing
                 };
 
                 return openpgp.sign(options).then(
-                    function packageResults(signature) { // Paul: doit surement changer ça surtout avec changement du type blob
+                    function packageResults(signature) {
                         // Returns a Blob representing the package of
                         // the signature it is provided and the original
                         // plaintext (in an enclosing scope).
                         var length = new Uint16Array([signature.byteLength]);
+                        
                         return new Blob(
                             [
-                                length,     // Always a 2 byte unsigned integer
-                                signature,  // "length" bytes long
-                                plaintext   // Remainder is the original plaintext
+                                //length,     // Always a 2 byte unsigned integer
+                                signature.data,  // "length" bytes long
+                                //plaintext   // Remainder is the original plaintext
                             ],
                             {type: "application/octet-stream"}
                         );
@@ -132,7 +125,6 @@ document.addEventListener("DOMContentLoaded", function() {
         // valid, it also creates a Blob with the original file
         // and places a link to that Blob in the download-results section.
 
-		// Paul: garder tel quel
         var sourceFile = document.getElementById("source-file").files[0];
 
         var reader = new FileReader();
@@ -146,13 +138,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var reader = this;              // Invoked by the reader object
             var data = reader.result;
 
-            // First, separate out the relevant pieces from the file.
-			// Paul: pas besoin de séparer il me semble
-            var signatureLength = new Uint16Array(data, 0, 2)[0];   // First 16 bit integer
-            var signature       = new Uint8Array( data, 2, signatureLength);
-            var plaintext       = new Uint8Array( data, 2 + signatureLength);
-
-            verify(data, signature, keyPair.publicKeyArmored).
+            verify(data, keyPair.publicKeyArmored).
             then(function(blob) { // Paul: peut virer, cf code de la doc (y'a une ligne if(validity){...})
                 if (blob === null) {
                     alert("Invalid signature!");
@@ -169,15 +155,13 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
 
-            async function verify(plaintext, signature, publicKey) {
+            async function verify(plaintext, publicKey) {
                 // Shows an alert stating whether the signature is
                 // valid or not, and returns a Promise the yields
                 // either a Blob containing the original plaintext
                 // or null if the signature was invalid.
 
-                // Paul: ouais tout changer et se référencer de nouveaux à la section Sign and verify cleartext messages
-
-                var message = openpgp.cleartext.fromText(plaintext); // parse armored message
+                var message = await openpgp.cleartext.readArmored(plaintext);
                 var pk = (await openpgp.key.readArmored(publicKey)).keys; // for verification
 
                 var options = {
@@ -196,6 +180,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             return null;
                         }
                     }
+                    
                 );
 
             } // end of verify
