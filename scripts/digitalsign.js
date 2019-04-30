@@ -8,19 +8,53 @@ document.addEventListener("DOMContentLoaded", function() {
     var openpgp = window.openpgp;
     var keyPair;    // Used by several handlers later
 
-    keyPair = createAndSaveAKeyPair().
-    then(function() {
-        // Only enable the cryptographic operation buttons if a key pair can be created
-        document.getElementById("sign").addEventListener("click", signTheFile);
-        document.getElementById("verify").addEventListener("click", verifyTheFile);
-    }).
+    // Only enable the cryptographic operation buttons if a key pair can be created
+    document.getElementById("sign").addEventListener("click", signTheFile);
+    document.getElementById("verify").addEventListener("click", verifyTheFile);
+    document.getElementById("openPGPGenerateKeys").addEventListener("click", function()
+    {keyPair = createAndSaveAKeyPair().
     catch(function(err) {
         alert("Could not create a keyPair or enable buttons: " + err.message + "\n" + err.stack);
-    });
+    });});
+    document.getElementById("openPGPTest").addEventListener("click", test);
 
-    // Key pair creation:
+    async function test()
+    {
+      document.getElementById("openpgp_test_waiting").hidden = false;
+      var msg = "hi";
+      var cleartext, validity;
+      var pubkey = keyPair.publicKeyArmored;
+      var privkey = keyPair.privateKeyArmored;
+      var passphrase = 'super long and hard to guess secret'; //what the privKey is encrypted with
+
+      var privKeyObj = (await openpgp.key.readArmored(privkey)).keys[0];
+      await privKeyObj.decrypt(passphrase);
+      var options_sign = {
+        message: openpgp.cleartext.fromText(msg),
+        privateKeys: [privKeyObj]
+      };
+      await openpgp.sign(options_sign).then(function(signed) {
+          cleartext = signed.data; // '-----BEGIN PGP SIGNED MESSAGE ... END PGP SIGNATURE-----'
+      });
+      var options_verify = {
+          message: await openpgp.cleartext.readArmored(cleartext), // parse armored message
+          publicKeys: (await openpgp.key.readArmored(pubkey)).keys // for verification
+      };
+      await openpgp.verify(options_verify).then(function(verified) {
+        validity = verified.signatures[0].valid; // true
+        if (validity) {
+            document.getElementById("openpgp_test_result").innerHTML = "<span class=\"badge badge-success\">Success : Signed by key ID " + verified.signatures[0].keyid.toHex()+"</span>";
+        }
+        else {
+          document.getElementById("openpgp_test_result").innerHTML = "<span class=\"badge badge-danger\">Failed</span>";
+        }
+      });
+      document.getElementById("openpgp_test_waiting").hidden = true;
+    }
 
     function createAndSaveAKeyPair() {
+      document.getElementById("openpgp_genkey_waiting").hidden = false;
+      console.log("Generating key pair");
         // Returns a promise.
         // Takes no input, yields a key pair to the then handler.
         // Side effect: updates keyPair in enclosing scope with new value.
@@ -35,8 +69,13 @@ document.addEventListener("DOMContentLoaded", function() {
         return openpgp.generateKey(options).then(function(key) {
             var privkey = key.privateKeyArmored; // '-----BEGIN PGP PRIVATE KEY BLOCK ... '
             var pubkey = key.publicKeyArmored;   // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+            document.getElementById("privkey_openpgp").innerHTML = privkey;
+            document.getElementById("pubkey_openpgp").innerHTML = pubkey;
+            document.getElementById("openPGPTest").disabled = false;
+            document.getElementById("sign").disabled = false;
+            document.getElementById("verify").disabled = false;
             var revocationCertificate = key.revocationCertificate; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
-
+            document.getElementById("openpgp_genkey_waiting").hidden = true;
             keyPair = key;
             return key;
         });
@@ -99,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         // the signature it is provided and the original
                         // plaintext (in an enclosing scope).
                         var length = new Uint16Array([signature.byteLength]);
-                        
+
                         return new Blob(
                             [
                                 //length,     // Always a 2 byte unsigned integer
@@ -180,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             return null;
                         }
                     }
-                    
+
                 );
 
             } // end of verify

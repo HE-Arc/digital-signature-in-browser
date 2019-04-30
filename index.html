@@ -11,7 +11,7 @@
     <meta charset="UTF-8"/>
     <script type="text/javascript" src="scripts/signverify.js"></script>
     <script type="text/javascript" src="scripts/openpgp.js"></script>
-    <!--<script type="text/javascript" src="scripts/digitalsign.js"></script>-->
+    <script type="text/javascript" src="scripts/digitalsign.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
     <script type="text/javascript" src="scripts/jsencrypt_ds.js"></script>
@@ -32,19 +32,40 @@
 		</div>
     <h1>Digital Signature</h1>
     <h3>OpenPGP.js</h3>
+    <br>
+    <input class="btn btn-primary btn-sm" id="openPGPGenerateKeys" type="button" value="Generate PGP keys" />
+    <span id="openpgp_genkey_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span><br><br>
     <h5 for="privkey_openpgp">Private Key</h5>
-    <label id="privkey_openpgp">Wanting for generation...</label><br><br>
+    <textarea id="privkey_openpgp" rows="5" cols="100" readonly></textarea><br><br>
     <h5 for="pubkey_openpgp">Public Key</h5>
-    <label id="pubkey_openpgp">Wanting for generation...</label><br><br>
-    <input class="btn btn-primary" id="jsEcryptTest" type="button" value="Test JSEncrypt"/><br>
-    <section id="sign-and-verify">
-        <input type="file" id="source-file"/>
-        <button id="sign">Sign File</button>
-        <button id="verify">Verify Signature</button>
-    </section>
+    <textarea id="pubkey_openpgp" rows="5" cols="100" readonly></textarea><br><br>
 
+    <h5>Fast test <br><small class="font-weight-light">
+      This test signs the string "test" with the public key and verifies the signature with the private key.<br>
+    </small></h5>
+
+    <input class="btn btn-primary btn-sm" id="openPGPTest" type="button" value="Test OpenPGP.js" disabled/>
+    <span id="openpgp_test_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span>
+    <span id="openpgp_test_result"></span>
+    <hr>
+    <h5>File signing</h5>
+    <section id="sign-and-verify">
+      <div class="p1 custom-file">
+        <div class="row">
+          <div class="col col-sm-6">
+            <input type="file" class="custom-file-input w-75 text-center float-right" id="source-file">
+            <label class="custom-file-label" for="customFile">Choose file</label>
+          </div>
+          <div class="col col-sm-6 text-center">
+            <button class="btn btn-primary float-left" id="sign" disabled>Sign File</button> 
+            <button class="btn btn-primary float-left" id="verify" disabled>Verify Signature</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <br>
     <section id="results">
-        Download results:
+        <h5>Download results</h5>
         <ul id="download-links">
         </ul>
     </section>
