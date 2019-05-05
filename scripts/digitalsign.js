@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function() {
     async function test()
     {
       document.getElementById("openpgp_test_waiting").hidden = false;
-      var msg = "hi";
+      var msg = "test";
       var cleartext, validity;
       var pubkey = keyPair.publicKeyArmored;
       var privkey = keyPair.privateKeyArmored;
