@@ -1,106 +1,112 @@
 <!DOCTYPE html>
-
-<!-- Copyright 2014 Info Tech, Inc. Provided under the MIT license. See LICENSE file for details. -->
-
 <html>
-<head>
+  <head>
     <title>Digital Signature</title>
-    <!-- BOOTSTRAP -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta charset="UTF-8"/>
-    <script type="text/javascript" src="scripts/signverify.js"></script>
     <script type="text/javascript" src="scripts/openpgp.js"></script>
     <script type="text/javascript" src="scripts/digitalsign.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
-    <script type="text/javascript" src="scripts/jsencrypt_ds.js"></script>
-</head>
-<body>
-  <div class="container">
-    <div class="page-header">
-			<h3>
-				<a href="http://he-arc.ch"><img src="external/resources/img/logo_hearc_ingenierie_rouge_transp.png" alt="logo_hearc_ingenierie" width="150px" /></a> 3xxx.x Sécurité
-			</h3>
-			<p class="lead">
-				Authors : Paul Arzul, Damian Petroff & Segan Salomon -	<span class="badge badge-danger">INF3dlm-b</span>
-				<div>
-					Last update : 28th April 2019
-				</div>
-			</p>
-			<hr>
-		</div>
-    <h1>Digital Signature</h1>
-    <h3>OpenPGP.js</h3>
-    <br>
-    <input class="btn btn-primary btn-sm" id="openPGPGenerateKeys" type="button" value="Generate PGP keys" />
-    <span id="openpgp_genkey_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span><br><br>
-    <h5 for="privkey_openpgp">Private Key</h5>
-    <textarea id="privkey_openpgp" rows="5" cols="100" readonly></textarea><br><br>
-    <h5 for="pubkey_openpgp">Public Key</h5>
-    <textarea id="pubkey_openpgp" rows="5" cols="100" readonly></textarea><br><br>
-
-    <h5>Fast test <br><small class="font-weight-light">
-      This test signs the string "test" with the public key and verifies the signature with the private key.<br>
-    </small></h5>
-
-    <input class="btn btn-primary btn-sm" id="openPGPTest" type="button" value="Test OpenPGP.js" disabled/>
-    <span id="openpgp_test_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span>
-    <span id="openpgp_test_result"></span>
-    <hr>
-    
-    <h5>File signing</h5>
-    <h6>Testing procedure :</h6>
-    <small class="font-weight-light">
-        <ol>
-            <li>Load the file you want to sign. Preferably a text file.</li>
-            <li>Click on <span class="badge badge-primary">Sign File</span>. The signed file will show up.</li>
-            <li>Click on the link to the signed fil to download it.</li>
-            <li>Reload the signed file you just downloaded.</li>
-            <li>Click on <span class="badge badge-primary">Verify Signature</span>. An alert will tell you whether the signature is valid or not.</li>
-        </ol>
-    </small>
-    <section id="sign-and-verify">
-      <div class="p1 custom-file">
-        <div class="row">
-          <div class="col col-sm-6">
-            <input type="file" class="custom-file-input w-75 text-center float-right" id="source-file">
-            <label class="custom-file-label" for="customFile">Choose file</label>
-          </div>
-          <div class="col col-sm-6 text-center">
-            <button class="btn btn-primary float-left" id="sign" disabled>Sign File</button> 
-            <button class="btn btn-primary float-left" id="verify" disabled>Verify Signature</button>
-          </div>
+    <style>
+    textarea { font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header">
+  			<h3>
+  				<a href="http://he-arc.ch"><img src="external/resources/img/logo_hearc_ingenierie_rouge_transp.png" alt="logo_hearc_ingenierie" width="150px" /></a> 3253.4 Sécurité
+  			</h3>
+  			<p class="lead">
+  				Authors : Paul Arzul, Damian Petroff & Segan Salomon -	<span class="badge badge-danger">INF3dlm-b</span>
+  				<div>
+  					Last update : 28th April 2019
+  				</div>
+  			</p>
+  			<hr>
+  		</div>
+      <h1>Digital Signature</h1>
+      <h3>OpenPGP.js</h3>
+      <br>
+      <div class="row">
+        <div class="col col-sm-6">
+          <h3 class="text-center">Alice</h3>
+          <h5 for="privkey_openpgp">Alice's <span style="color:red;">Private</span> Key</h5>
+          <textarea id="privkey_openpgp" rows="10" cols="80" readonly></textarea><br><br>
+          <h5 for="raw_message_openpgp">Content</h5>
+          <textarea id="raw_message_openpgp" rows="1" cols="80" readonly>Hello Bob</textarea><br><br>
+          <h5 for="signed_message_a_openpgp">Signed Content</h5>
+          <textarea id="signed_message_a_openpgp" rows="10" cols="80" readonly></textarea><br><br>
+        </div>
+        <div class="col col-sm-6">
+          <h3 class="text-center">Bob</h3>
+          <h5 for="pubkey_openpgp">Alice's <span style="color:lightgreen;">Public</span> Key</h5>
+          <textarea id="pubkey_openpgp" rows="10" cols="80" readonly></textarea><br><br>
+          <h5 for="signed_message_b_openpgp">Signed Content</h5>
+          <textarea id="signed_message_b_openpgp" rows="10" cols="80" readonly></textarea><br><br>
+          <h5 for="raw_message_openpgp">Result</h5>
+          <span id="openpgp_demo_result">-</span><br><br>
         </div>
       </div>
-    </section>
-    <br>
-    <section id="results">
-        <h5>Download results</h5>
-        <ul id="download-links">
-        </ul>
-    </section>
-
-    <hr>
-    <h3>jsEncrypt</h3><br>
-    <h5 for="privkey">Example Private Key</h5>
-    <textarea id="privkey" rows="14" cols="100"></textarea><br><br>
-    <h5 for="pubkey">Example Public Key</h5>
-    <textarea id="pubkey" rows="5" cols="100"></textarea><br><br>
-    <h5 for="input">Text to encrypt:</h5>
-    <textarea id="input" name="input" type="text" rows=4 cols=65>This is a test!</textarea><br><br>
-
-    <h5>Encrypted ciphertext</h5>
-    <span id="encrypted">---</span><br>
-
-    <h5>Uncrypted plaintext</h5>
-    <span id="uncrypted">---</span><br><br>
-
-    <span id="result">---</span><br><br>
-
-    <input class="btn btn-primary" id="jsEcryptTest" type="button" value="Test JSEncrypt"/><br>
-
+      <h5>Demo</h5>
+      <div class="row">
+        <div class="col col-sm-6 text-center">
+          <input class="btn btn-secondary btn w-50" id="openPGPDemo_generatekeys" type="button" value="1. Generate PGP keys for Alice" />
+          <span id="openpgp_genkey_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span><br><br>
+          <input class="btn btn-secondary btn w-50" id="openPGPDemo_sign" type="button" value="2. Alice signs the message" disabled/>
+          <span id="openpgp_sign_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span><br><br>
+        </div>
+        <div class="col col-sm-6 text-center">
+          <input class="btn btn-secondary btn w-50" id="openPGPDemo_transfer" type="button" value="3. Transfer the message to Bob" disabled/>
+          <span id="openpgp_transfer_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span><br><br>
+          <input class="btn btn-secondary btn w-50" id="openPGPDemo_verify" type="button" value="4. Bob verifies the message" disabled/>
+          <span id="openpgp_verify_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span><br><br>
+        </div>
       </div>
+      <hr>
+      <h5>
+        Fast test <br>
+        <small class="font-weight-light">
+          This test signs the string "test" with the public key and verifies the signature with the private key.<br>
+        </small>
+      </h5>
+      <input class="btn btn-primary btn-sm" id="openPGPTest" type="button" value="Test OpenPGP.js" disabled/>
+      <span id="openpgp_test_waiting" class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span>
+      <span id="openpgp_test_result"></span>
+      <hr>
+      <h5>File signing</h5>
+      <h6>Testing procedure :</h6>
+      <small class="font-weight-light">
+          <ol>
+              <li>Load the file you want to sign. Preferably a text file.</li>
+              <li>Click on <span class="badge badge-primary">Sign File</span>. The signed file will show up.</li>
+              <li>Click on the link to the signed file to download it.</li>
+              <li>Reload the signed file you just downloaded.</li>
+              <li>Click on <span class="badge badge-primary">Verify Signature</span>. A message will tell you whether the signature is valid or not.</li>
+          </ol>
+      </small>
+      <section id="sign-and-verify">
+        <div class="p1 custom-file">
+          <div class="row">
+            <div class="col col-sm-6">
+              <input type="file" class="w-100 text-center float-right" id="source-file">
+            </div>
+            <div class="col col-sm-6 text-center">
+              <button class="btn btn-primary float-left" id="sign" disabled>Sign File</button> 
+              <button class="btn btn-primary float-left" id="verify" disabled>Verify Signature</button>
+            </div>
+          </div>
+          <span id="openpgp_file_waiting" class="spinner-border text-primary float-left" style="width: 1.5rem; height: 1.5rem;"  role="status" hidden></span>
+          <span class="text-center" id="openpgp_file_result"></span>
+        </div>
+      </section>
+      <section id="results">
+          <h5>Download results</h5>
+          <ul id="download-links">
+          </ul>
+      </section>
+    </div>
   </body>
-</script>
 </html>
